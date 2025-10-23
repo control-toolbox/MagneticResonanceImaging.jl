@@ -87,10 +87,10 @@ Number of inequality constraint evaluations          = 0
 Number of equality constraint Jacobian evaluations   = 149
 Number of inequality constraint Jacobian evaluations = 0
 Number of Lagrangian Hessian evaluations             = 143
-Total seconds in IPOPT                               = 8.205
+Total seconds in IPOPT                               = 8.035
 
 EXIT: Optimal Solution Found.</code></pre><p>Then, we plot the solution thanks to Plots.</p><pre><code class="language-julia hljs">using Plots
-plt = plot(sol; size=(700, 500), label=&quot;N = &quot;*string(N))</code></pre><img src="saturation-e78470ea.svg" alt="Example block output"/><p>This rough approximation is then refine on a finer grid of 1000 points. This two steps resolution increases the speed of convergence. Note that we provide the previous solution as initialisation.</p><pre><code class="language-julia hljs">N = 1000
+plt = plot(sol; size=(700, 500), label=&quot;N = &quot;*string(N))</code></pre><img src="saturation-fde1df3d.svg" alt="Example block output"/><p>This rough approximation is then refine on a finer grid of 1000 points. This two steps resolution increases the speed of convergence. Note that we provide the previous solution as initialisation.</p><pre><code class="language-julia hljs">N = 1000
 direct_sol = solve(
     ocp;
     grid_size=N,
@@ -136,9 +136,9 @@ Number of inequality constraint evaluations          = 0
 Number of equality constraint Jacobian evaluations   = 57
 Number of inequality constraint Jacobian evaluations = 0
 Number of Lagrangian Hessian evaluations             = 55
-Total seconds in IPOPT                               = 3.685
+Total seconds in IPOPT                               = 4.058
 
-EXIT: Optimal Solution Found.</code></pre><p>We can compare both solutions. The BSBS structure is revelead even if the second bang arc is not clearly demonstrated.</p><pre><code class="language-julia hljs">plot!(plt, direct_sol; label=&quot;N = &quot;*string(N), color=2)</code></pre><img src="saturation-43439e66.svg" alt="Example block output"/><div class="admonition is-info" id="Code-for-plotting-in-the-Bloch-ball-62e42b27420c2159"><header class="admonition-header">Code for plotting in the Bloch ball<a class="admonition-anchor" href="#Code-for-plotting-in-the-Bloch-ball-62e42b27420c2159" title="Permalink"></a></header><div class="admonition-body"><p>We define a custom plot function for plotting the solution inside the Bloch ball.</p><details><summary>Click to unfold and get the code of the custom plot function.</summary><pre><code class="language-julia hljs">using Plots.PlotMeasures
+EXIT: Optimal Solution Found.</code></pre><p>We can compare both solutions. The BSBS structure is revealed even if the second bang arc is not clearly demonstrated.</p><pre><code class="language-julia hljs">plot!(plt, direct_sol; label=&quot;N = &quot;*string(N), color=2)</code></pre><img src="saturation-7e810b25.svg" alt="Example block output"/><div class="admonition is-info" id="Code-for-plotting-in-the-Bloch-ball-62e42b27420c2159"><header class="admonition-header">Code for plotting in the Bloch ball<a class="admonition-anchor" href="#Code-for-plotting-in-the-Bloch-ball-62e42b27420c2159" title="Permalink"></a></header><div class="admonition-body"><p>We define a custom plot function for plotting the solution inside the Bloch ball.</p><details><summary>Click to unfold and get the code of the custom plot function.</summary><pre><code class="language-julia hljs">using Plots.PlotMeasures
 function spin_plot(sol; kwargs...)
 
     y2 = cos(asin(zs))
@@ -179,7 +179,7 @@ function spin_plot(sol; kwargs...)
 
     return plot(state_plt, control_plt; layout=(1, 2), leftmargin=15px, bottommargin=15px, kwargs...)
 
-end</code></pre></details></div></div><p>Below, we plot the solution inside the Bloch ball. The first bang arc drives the trajectory to the horizontal singular line <span>$z = \gamma / (2\delta)$</span>, shown as a dashed line. The second bang arc is very short, which makes it difficult to capture accurately unless the grid is sufficiently fine. In the next section, we introduce an indirect method to refine this approximation.</p><pre><code class="language-julia hljs">spin_plot(direct_sol; size=(800, 400))</code></pre><img src="saturation-99b71422.svg" alt="Example block output"/><p>To make the indirect method converge we need a good initial guess. We extract below the useful information from the direct solution to provide an initial guess for the indirect method. We need the initial costate together with the switching times between bang and singular arcs and the final time.</p><pre><code class="language-julia hljs">t  = time_grid(direct_sol)
+end</code></pre></details></div></div><p>Below, we plot the solution inside the Bloch ball. The first bang arc drives the trajectory to the horizontal singular line <span>$z = \gamma / (2\delta)$</span>, shown as a dashed line. The second bang arc is very short, which makes it difficult to capture accurately unless the grid is sufficiently fine. In the next section, we introduce an indirect method to refine this approximation.</p><pre><code class="language-julia hljs">spin_plot(direct_sol; size=(800, 400))</code></pre><img src="saturation-7bb7fd7e.svg" alt="Example block output"/><p>To make the indirect method converge we need a good initial guess. We extract below the useful information from the direct solution to provide an initial guess for the indirect method. We need the initial costate together with the switching times between bang and singular arcs and the final time.</p><pre><code class="language-julia hljs">t  = time_grid(direct_sol)
 q  = state(direct_sol)
 p  = costate(direct_sol)
 u  = control(direct_sol)
@@ -247,7 +247,7 @@ end</code></pre></details></div></div><p>We can notice on the plots below that m
 H1 = Lift(q -&gt; F1(q...))
 H01  = @Lie { H0, H1 }
 
-switching_plot(direct_sol, H1, H01; size=(700, 800))</code></pre><img src="saturation-21b47e63.svg" alt="Example block output"/><p>We aim to compute a better approximation of the solution thanks to indirect shooting. To do so, we need to define the three different flows associated to the three different  control laws in feedback form: bang control, singular control along the horizontal line and singular control along the vertical line. </p><div class="admonition is-info" id="Note-7eb04a3bb9d48c15"><header class="admonition-header">Note<a class="admonition-anchor" href="#Note-7eb04a3bb9d48c15" title="Permalink"></a></header><div class="admonition-body"><p>Let us recall that <span>$\delta = \gamma - \Gamma$</span>. Then, for any <span>$q = (y,z)$</span> we have:</p><p class="math-container">\[    \begin{aligned}
+switching_plot(direct_sol, H1, H01; size=(700, 800))</code></pre><img src="saturation-d7c26356.svg" alt="Example block output"/><p>We aim to compute a better approximation of the solution thanks to indirect shooting. To do so, we need to define the three different flows associated to the three different  control laws in feedback form: bang control, singular control along the horizontal line and singular control along the vertical line. </p><div class="admonition is-info" id="Note-7eb04a3bb9d48c15"><header class="admonition-header">Note<a class="admonition-anchor" href="#Note-7eb04a3bb9d48c15" title="Permalink"></a></header><div class="admonition-body"><p>Let us recall that <span>$\delta = \gamma - \Gamma$</span>. Then, for any <span>$q = (y,z)$</span> we have:</p><p class="math-container">\[    \begin{aligned}
         F_{01}(q) &amp;= 
         -(\gamma - \delta z) \frac{\partial}{\partial y} + 
         \delta y \frac{\partial}{\partial z}, \\[0.5em]
@@ -270,7 +270,7 @@ options = (abstol=1e-14, reltol=1e-10)
 
 f0 = Flow(ocp, (q, p, tf) -&gt; u0      ; options...)
 f1 = Flow(ocp, (q, p, tf) -&gt; u1      ; options...)
-fs = Flow(ocp, (q, p, tf) -&gt; us(q[1]); options...)</code></pre><p>With the previous flows, we can define the shooting function considering the sequence given by the direct method: Bang-Singular-Bang-Singular. There are 3 switching times <span>$t_1$</span>, <span>$t_2$</span> and <span>$t_3$</span>. The final time <span>$t_f$</span> is unknown such as the initial costate. To reduce the sensitivy of the shooting function we also consider the states and costates at the switching times as unknowns and we add some matching conditions.</p><p>Note that the final time is free, hence, in the normal case, <span>$H = -p^0 = 1$</span> along the solution of the PMP. Considering this condition at the initial time (<span>$H$</span> is constant since the system is autonomous), we obtain <span>$p_y(0) = -1$</span>. At the entrance of the singular arcs, we must satisfy <span>$H_1 = H_{01} = 0$</span>. For the first singular arc, this leads to the conditions </p><p class="math-container">\[    - p_y(t_1) z_s + p_z(t_1) y(t_1) = z(t_1) - z_s = 0.\]</p><p>At the entrance of the second singular arc, we have</p><p class="math-container">\[    p_y(t_3) = y(t_3) = 0.\]</p><p>Finally, the solution has to satisfy the final condition  <span>$q(t_f) = (y(t_f), z(t_f)) = (0, 0)$</span>. Since, the last singular arc is contained in <span>$y=0$</span>, the condition <span>$y(t_f)=0$</span> is redundant and  so we only need to check that <span>$z(t_f) = 0$</span>.</p><p>Altogether, this leads to the following shooting function.</p><pre><code class="language-julia hljs">function shoot!(s, pz0, t1, t2, t3, tf, q1, p1, q2, p2, q3, p3)
+fs = Flow(ocp, (q, p, tf) -&gt; us(q[1]); options...)</code></pre><p>With the previous flows, we can define the shooting function considering the sequence given by the direct method: Bang-Singular-Bang-Singular. There are 3 switching times <span>$t_1$</span>, <span>$t_2$</span> and <span>$t_3$</span>. The final time <span>$t_f$</span> is unknown such as the initial costate. To reduce the sensitivity of the shooting function we also consider the states and costates at the switching times as unknowns and we add some matching conditions.</p><p>Note that the final time is free, hence, in the normal case, <span>$H = -p^0 = 1$</span> along the solution of the PMP. Considering this condition at the initial time (<span>$H$</span> is constant since the system is autonomous), we obtain <span>$p_y(0) = -1$</span>. At the entrance of the singular arcs, we must satisfy <span>$H_1 = H_{01} = 0$</span>. For the first singular arc, this leads to the conditions </p><p class="math-container">\[    - p_y(t_1) z_s + p_z(t_1) y(t_1) = z(t_1) - z_s = 0.\]</p><p>At the entrance of the second singular arc, we have</p><p class="math-container">\[    p_y(t_3) = y(t_3) = 0.\]</p><p>Finally, the solution has to satisfy the final condition  <span>$q(t_f) = (y(t_f), z(t_f)) = (0, 0)$</span>. Since, the last singular arc is contained in <span>$y=0$</span>, the condition <span>$y(t_f)=0$</span> is redundant and  so we only need to check that <span>$z(t_f) = 0$</span>.</p><p>Altogether, this leads to the following shooting function.</p><pre><code class="language-julia hljs">function shoot!(s, pz0, t1, t2, t3, tf, q1, p1, q2, p2, q3, p3)
 
     p0 = [-1, pz0]
 
@@ -342,104 +342,104 @@ s = similar([pz0], 17)
 shoot!(s, pz0, t1, t2, t3, tf, q1, p1, q2, p2, q3, p3)
 println(&quot;Norm of the shooting function: ‖s‖ = &quot;, norm(s), &quot;\n&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Iter     f(x) inf-norm    Step 2-norm      Step time
 ------   --------------   --------------   --------------
-     1     1.729122e+01     0.000000e+00         0.257583
-     2     9.461468e-01     3.704268e+01        13.238806
-     3     2.839417e-01     7.649105e+00         0.004690
-     4     2.196746e-01     6.189414e+00         0.004555
-     5     4.899687e-02     1.555075e+01         0.004622
-     6     1.317601e-01     6.220299e+01         0.004482
-     7     3.647552e-01     1.399561e+02         0.004577
-     8     4.266673e-02     3.889313e+00         0.057910
-     9     1.862372e-01     1.555075e+01         0.004586
-    10     3.906691e-02     3.889347e+00         0.004588
-    11     6.814071e-02     3.887687e+00         0.004513
-    12     1.408918e-02     9.722099e-01         0.004655
-    13     4.460910e-02     3.887687e+00         0.004649
-    14     9.719317e-03     9.720021e-01         0.004552
-    15     4.894523e-02     3.887687e+00         0.004589
-    16     1.037975e-02     9.720452e-01         0.004583
-    17     1.722110e-02     9.719218e-01         0.004553
-    18     3.374491e-03     2.429959e-01         0.004475
-    19     1.050803e-02     9.719218e-01         0.004576
-    20     2.514214e-03     2.429847e-01         0.004540
-    21     1.236260e-02     9.719218e-01         0.004583
-    22     2.699892e-03     2.429877e-01         0.005472
-    23     4.405108e-03     2.429804e-01         0.006459
-    24     1.140801e-03     6.074605e-02         0.006420
-    25     2.529561e-03     2.429804e-01         0.006441
-    26     8.971382e-04     6.074537e-02         0.006438
-    27     3.105367e-03     2.429804e-01         0.017025
-    28     6.886897e-04     6.074555e-02         0.004582
-    29     1.114999e-03     6.074511e-02         0.004564
-    30     5.937321e-04     1.518634e-02         0.004565
-    31     6.886842e-04     6.074511e-02         0.004578
-    32     5.243157e-04     1.518629e-02         0.004554
-    33     7.780882e-04     6.074511e-02         0.004597
-    34     4.570424e-04     1.518630e-02         0.004517
-    35     7.861590e-04     6.074511e-02         0.004633
-    36     3.925009e-04     1.518631e-02         0.004631
-    37     7.834904e-04     6.074511e-02         0.004587
-    38     3.308893e-04     1.518631e-02         0.004585
-    39     7.850448e-04     6.074511e-02         0.004660
-    40     2.723456e-04     1.518631e-02         0.004560
-    41     7.867550e-04     6.074511e-02         0.005197
-    42     2.170459e-04     1.518631e-02         0.013904
-    43     7.883591e-04     6.074511e-02         0.004553
-    44     1.793299e-04     1.518631e-02         0.004539
-    45     7.899762e-04     6.074511e-02         0.004570
-    46     1.787759e-04     1.518631e-02         0.004505
-    47     2.839177e-04     1.518628e-02         0.004599
-    48     1.589777e-04     3.796573e-03         0.004611
-    49     1.503008e-04     1.518628e-02         0.004631
-    50     1.506639e-04     3.796570e-03         0.004552
-    51     1.968768e-04     1.518628e-02         0.004599
-    52     1.424838e-04     3.796571e-03         0.004593
-    53     1.995271e-04     1.518628e-02         0.004494
-    54     1.342526e-04     3.796571e-03         0.004591
-    55     1.981819e-04     1.518628e-02         0.010895
-    56     1.259568e-04     3.796571e-03         0.004576
-    57     1.983571e-04     1.518628e-02         0.004544
-    58     1.175940e-04     3.796571e-03         0.004554
-    59     1.986120e-04     1.518628e-02         0.004584
-    60     1.091543e-04     3.796571e-03         0.004556
-    61     1.988165e-04     1.518628e-02         0.004597
-    62     1.006264e-04     3.796571e-03         0.004538
-    63     1.990215e-04     1.518628e-02         0.004575
-    64     9.199661e-05     3.796571e-03         0.004592
-    65     7.942206e-05     3.796569e-03         0.004606
-    66     8.723075e-05     9.491426e-04         0.004567
-    67     7.506888e-05     3.796569e-03         0.010215
-    68     1.671472e-04     1.518628e-02         0.004518
-    69     6.666612e-05     3.796571e-03         0.004532
-    70     6.134116e-05     9.491423e-04         0.026272
-    71     4.993156e-05     3.796569e-03         0.004545
-    72     5.647321e-05     9.491424e-04         0.004608
-    73     4.774483e-05     3.796569e-03         0.004601
-    74     5.160140e-05     9.491424e-04         0.004827
-    75     4.774429e-05     3.796569e-03         0.004573
-    76     4.672439e-05     9.491424e-04         0.004502
-    77     4.776050e-05     3.796569e-03         0.004563
-    78     4.183994e-05     9.491424e-04         0.004589
-    79     4.777702e-05     3.796569e-03         0.004607
-    80     3.694529e-05     9.491424e-04         0.004577
-    81     4.779396e-05     3.796569e-03         0.010320
-    82     3.203693e-05     9.491424e-04         0.004533
-    83     4.781135e-05     3.796569e-03         0.004571
-    84     2.711017e-05     9.491424e-04         0.004552
-    85     4.782922e-05     3.796569e-03         0.004539
-    86     2.215861e-05     9.491424e-04         0.004600
-    87     4.784748e-05     3.796569e-03         0.004616
-    88     1.717278e-05     9.491424e-04         0.004590
-    89     4.786617e-05     3.796569e-03         0.004550
-    90     1.213744e-05     9.491424e-04         0.004559
-    91     4.788528e-05     3.796569e-03         0.004549
-    92     8.099733e-06     9.491424e-04         0.010467
-    93     2.324556e-05     1.548720e-03         0.004594
-    94     2.321022e-06     7.302766e-05         0.004536
-    95     2.874309e-06     7.491451e-05         0.004590
-    96     1.820500e-08     1.764248e-10         0.004594
-    97     4.598817e-09     9.549517e-12         0.004580
-    98     3.929525e-12     3.584306e-13         0.004626
+     1     1.729122e+01     0.000000e+00         0.255070
+     2     9.461468e-01     3.704268e+01        13.204681
+     3     2.839417e-01     7.649105e+00         0.005366
+     4     2.196746e-01     6.189414e+00         0.004840
+     5     4.899687e-02     1.555075e+01         0.004628
+     6     1.317601e-01     6.220299e+01         0.004658
+     7     3.647552e-01     1.399561e+02         0.004708
+     8     4.266673e-02     3.889313e+00         0.070043
+     9     1.862372e-01     1.555075e+01         0.004732
+    10     3.906691e-02     3.889347e+00         0.004613
+    11     6.814071e-02     3.887687e+00         0.004706
+    12     1.408918e-02     9.722099e-01         0.004564
+    13     4.460910e-02     3.887687e+00         0.004584
+    14     9.719317e-03     9.720021e-01         0.004570
+    15     4.894523e-02     3.887687e+00         0.004532
+    16     1.037975e-02     9.720452e-01         0.004549
+    17     1.722110e-02     9.719218e-01         0.004581
+    18     3.374491e-03     2.429959e-01         0.004611
+    19     1.050803e-02     9.719218e-01         0.004596
+    20     2.514214e-03     2.429847e-01         0.005655
+    21     1.236260e-02     9.719218e-01         0.006392
+    22     2.699892e-03     2.429877e-01         0.006464
+    23     4.405108e-03     2.429804e-01         0.006399
+    24     1.140801e-03     6.074605e-02         0.006363
+    25     2.529561e-03     2.429804e-01         0.023932
+    26     8.971382e-04     6.074537e-02         0.004736
+    27     3.105367e-03     2.429804e-01         0.004664
+    28     6.886897e-04     6.074555e-02         0.005054
+    29     1.114999e-03     6.074511e-02         0.005295
+    30     5.937321e-04     1.518634e-02         0.005664
+    31     6.886842e-04     6.074511e-02         0.005548
+    32     5.243157e-04     1.518629e-02         0.005083
+    33     7.780882e-04     6.074511e-02         0.004903
+    34     4.570424e-04     1.518630e-02         0.004709
+    35     7.861590e-04     6.074511e-02         0.004713
+    36     3.925009e-04     1.518631e-02         0.004729
+    37     7.834904e-04     6.074511e-02         0.004768
+    38     3.308893e-04     1.518631e-02         0.004737
+    39     7.850448e-04     6.074511e-02         0.005358
+    40     2.723456e-04     1.518631e-02         0.006439
+    41     7.867550e-04     6.074511e-02         0.006441
+    42     2.170459e-04     1.518631e-02         0.017783
+    43     7.883591e-04     6.074511e-02         0.004570
+    44     1.793299e-04     1.518631e-02         0.004517
+    45     7.899762e-04     6.074511e-02         0.004696
+    46     1.787759e-04     1.518631e-02         0.004674
+    47     2.839177e-04     1.518628e-02         0.004583
+    48     1.589777e-04     3.796573e-03         0.004552
+    49     1.503008e-04     1.518628e-02         0.004521
+    50     1.506639e-04     3.796570e-03         0.004529
+    51     1.968768e-04     1.518628e-02         0.004549
+    52     1.424838e-04     3.796571e-03         0.004577
+    53     1.995271e-04     1.518628e-02         0.004568
+    54     1.342526e-04     3.796571e-03         0.004656
+    55     1.981819e-04     1.518628e-02         0.012114
+    56     1.259568e-04     3.796571e-03         0.004648
+    57     1.983571e-04     1.518628e-02         0.004651
+    58     1.175940e-04     3.796571e-03         0.004609
+    59     1.986120e-04     1.518628e-02         0.005124
+    60     1.091543e-04     3.796571e-03         0.005263
+    61     1.988165e-04     1.518628e-02         0.005782
+    62     1.006264e-04     3.796571e-03         0.005151
+    63     1.990215e-04     1.518628e-02         0.004997
+    64     9.199661e-05     3.796571e-03         0.004870
+    65     7.942206e-05     3.796569e-03         0.004587
+    66     8.723075e-05     9.491426e-04         0.004559
+    67     7.506888e-05     3.796569e-03         0.013374
+    68     1.671472e-04     1.518628e-02         0.004535
+    69     6.666612e-05     3.796571e-03         0.004564
+    70     6.134116e-05     9.491423e-04         0.027762
+    71     4.993156e-05     3.796569e-03         0.004677
+    72     5.647321e-05     9.491424e-04         0.004820
+    73     4.774483e-05     3.796569e-03         0.005155
+    74     5.160140e-05     9.491424e-04         0.005393
+    75     4.774429e-05     3.796569e-03         0.005867
+    76     4.672439e-05     9.491424e-04         0.005314
+    77     4.776050e-05     3.796569e-03         0.005089
+    78     4.183994e-05     9.491424e-04         0.004943
+    79     4.777702e-05     3.796569e-03         0.004701
+    80     3.694529e-05     9.491424e-04         0.014916
+    81     4.779396e-05     3.796569e-03         0.004769
+    82     3.203693e-05     9.491424e-04         0.004700
+    83     4.781135e-05     3.796569e-03         0.004693
+    84     2.711017e-05     9.491424e-04         0.004822
+    85     4.782922e-05     3.796569e-03         0.004698
+    86     2.215861e-05     9.491424e-04         0.004675
+    87     4.784748e-05     3.796569e-03         0.004644
+    88     1.717278e-05     9.491424e-04         0.004653
+    89     4.786617e-05     3.796569e-03         0.004626
+    90     1.213744e-05     9.491424e-04         0.004592
+    91     4.788528e-05     3.796569e-03         0.004634
+    92     8.099733e-06     9.491424e-04         0.011551
+    93     2.324556e-05     1.548720e-03         0.004675
+    94     2.321022e-06     7.302766e-05         0.004621
+    95     2.874309e-06     7.491451e-05         0.005072
+    96     1.820500e-08     1.764248e-10         0.005303
+    97     4.598817e-09     9.549517e-12         0.005589
+    98     3.929525e-12     3.584306e-13         0.005615
 pz0 = -10.103027162172827
 t1 = 1.6450509469600774
 t2 = 37.32398128558159
@@ -452,7 +452,7 @@ f = f1 * (t1, fs) * (t2, f1) * (t3, f0)
 indirect_sol = f((t0, tf), q0, [-1, pz0])
 
 # plot in the Bloch ball
-spin_plot(indirect_sol; size=(800, 400))</code></pre><img src="saturation-e7a96581.svg" alt="Example block output"/><p>From the following plot, we can conclude that the maximisation condition from the PMP is now well satisfied compared to the solution obtained from the direct method.</p><pre><code class="language-julia hljs">plt = switching_plot(indirect_sol, H1, H01; size=(700, 800))
+spin_plot(indirect_sol; size=(800, 400))</code></pre><img src="saturation-6288fb9b.svg" alt="Example block output"/><p>From the following plot, we can conclude that the maximisation condition from the PMP is now well satisfied compared to the solution obtained from the direct method.</p><pre><code class="language-julia hljs">plt = switching_plot(indirect_sol, H1, H01; size=(700, 800))
 lens!(plt, [37.2, 37.7], [    0, 4e-5], inset = (1, bbox(0.3, 0.2, 0.3, 0.4)))
 lens!(plt, [37.2, 37.7], [-5e-4, 5e-4], inset = (2, bbox(0.3, 0.3, 0.3, 0.4)))
-lens!(plt, [37.2, 37.7], [  0.5,  1.1], inset = (3, bbox(0.3, 0.2, 0.3, 0.4)))</code></pre><img src="saturation-edf1d7c3.svg" alt="Example block output"/><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-1"><a class="tag is-link" href="#citeref-1">1</a>B. Bonnard, O. Cots, S. Glaser, M. Lapert, D. Sugny &amp; Y. Zhang, *Geometric optimal control of the contrast imaging problem in nuclear magnetic resonance, IEEE Trans. Automat. Control, <strong>57</strong> (2012), no. 8, 1957–1969.</li><li class="footnote" id="footnote-2"><a class="tag is-link" href="#citeref-2">2</a>Bonnard, B.; Cots, O.; Rouot, J.; Verron, T. Time minimal saturation of a pair of spins and application in magnetic resonance imaging. Mathematical Control and Related Fields, 2020, 10 (1), pp.47-88. https://inria.hal.science/hal-01779377</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="bloch-equation.html">« Bloch equation</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.15.0 on <span class="colophon-date" title="Thursday 23 October 2025 14:32">Thursday 23 October 2025</span>. Using Julia version 1.12.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+lens!(plt, [37.2, 37.7], [  0.5,  1.1], inset = (3, bbox(0.3, 0.2, 0.3, 0.4)))</code></pre><img src="saturation-2a5bf418.svg" alt="Example block output"/><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-1"><a class="tag is-link" href="#citeref-1">1</a>B. Bonnard, O. Cots, S. Glaser, M. Lapert, D. Sugny &amp; Y. Zhang, *Geometric optimal control of the contrast imaging problem in nuclear magnetic resonance, IEEE Trans. Automat. Control, <strong>57</strong> (2012), no. 8, 1957–1969.</li><li class="footnote" id="footnote-2"><a class="tag is-link" href="#citeref-2">2</a>Bonnard, B.; Cots, O.; Rouot, J.; Verron, T. Time minimal saturation of a pair of spins and application in magnetic resonance imaging. Mathematical Control and Related Fields, 2020, 10 (1), pp.47-88. https://inria.hal.science/hal-01779377</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="bloch-equation.html">« Bloch equation</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.15.0 on <span class="colophon-date" title="Thursday 23 October 2025 15:38">Thursday 23 October 2025</span>. Using Julia version 1.12.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
