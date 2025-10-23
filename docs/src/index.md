@@ -43,7 +43,7 @@ by *in vitro* and *in vivo* experiments, see for instance [^16] [^17].
 
 [^1]: C. Brif, R. Chakrabarti & H. Rabitz, *Control of Quantum Phenomena: Past, Present and Future*, New Journal for Physics, **12** (2010), pp.1--68.
 
-[^2]: A. Abragam, *The Principles of Nucelar Magnetism*, Oxford University Press, London (1961).
+[^2]: A. Abragam, *The Principles of Nuclear Magnetism*, Oxford University Press, London (1961).
 
 [^3]: R. R. Ernst, *Principles of Nuclear Magnetic Resonance in one and two dimensions* International Series of Monographs on Chemistry, Oxford University Press, Oxford (1990).
 

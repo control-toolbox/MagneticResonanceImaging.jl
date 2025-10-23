@@ -173,7 +173,7 @@ direct_sol = solve(
 nothing # hide
 ```
 
-We can compare both solutions. The BSBS structure is revelead even if the second bang arc is not clearly demonstrated.
+We can compare both solutions. The BSBS structure is revealed even if the second bang arc is not clearly demonstrated.
 
 ```@example main
 plot!(plt, direct_sol; label="N = "*string(N), color=2)
@@ -430,7 +430,7 @@ fs = Flow(ocp, (q, p, tf) -> us(q[1]); options...)
 nothing # hide
 ```
 
-With the previous flows, we can define the shooting function considering the sequence given by the direct method: Bang-Singular-Bang-Singular. There are 3 switching times $t_1$, $t_2$ and $t_3$. The final time $t_f$ is unknown such as the initial costate. To reduce the sensitivy of the shooting function we also consider the states and costates at the switching times as unknowns and we add some matching conditions.
+With the previous flows, we can define the shooting function considering the sequence given by the direct method: Bang-Singular-Bang-Singular. There are 3 switching times $t_1$, $t_2$ and $t_3$. The final time $t_f$ is unknown such as the initial costate. To reduce the sensitivity of the shooting function we also consider the states and costates at the switching times as unknowns and we add some matching conditions.
 
 Note that the final time is free, hence, in the normal case, $H = -p^0 = 1$ along the solution of the PMP. Considering this condition at the initial time ($H$ is constant since the system is autonomous), we obtain $p_y(0) = -1$. At the entrance of the singular arcs, we must satisfy $H_1 = H_{01} = 0$. For the first singular arc, this leads to the conditions 
 
