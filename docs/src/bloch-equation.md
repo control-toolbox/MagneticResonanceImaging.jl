@@ -48,7 +48,7 @@ normalized introducing the state $q=(x,y,z)$, the matrices
     \end{bmatrix}
 ```
 
-and $S(\tau) = \exp(\tau \, \bar{\omega}\,  \Omega_z)$, and writting 
+and $S(\tau) = \exp(\tau \, \bar{\omega}\,  \Omega_z)$, and writing 
 $M(\tau) = M_0 S(\tau) q(\tau)$. In the rotating frame the Bloch equation becomes:
 
 ```math
